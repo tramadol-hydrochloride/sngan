@@ -28,7 +28,7 @@ dataset:
   dataset_fn: datasets/video10000.py
   dataset_name: Video10000Dataset
   args:
-    augmentation: True
+    size: 128
 
 adam:
   alpha: 0.0002

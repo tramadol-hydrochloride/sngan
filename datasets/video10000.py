@@ -9,9 +9,9 @@ from PIL import Image, ImageOps
 import chainer
 
 class Video10000Dataset(chainer.dataset.DatasetMixin):
-    def __init__(self, dataset_dirname):
-        self.path = glob('./datasets/{}/*.jpg'.format(dataset_dirname))
-        self.img_res = (256, 256)
+    def __init__(self, data_dir, size=256):
+        self.path = glob('{}/*.jpg'.format(data_dir))
+        self.img_res = (size, size)
         self.crop_ratio = 0.9
 
     def __len__(self):
