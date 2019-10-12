@@ -13,8 +13,6 @@ class Video10000Dataset(chainer.dataset.DatasetMixin):
         self.path = glob('{}/*.jpg'.format(data_dir))
         self.img_res = (size, size)
         self.crop_ratio = 0.9
-        for i in range(0, 9000, 100):
-            print('self.path[{}]: {}'.format(i, self.path[i]))
 
     def __len__(self):
         return len(self.path)
