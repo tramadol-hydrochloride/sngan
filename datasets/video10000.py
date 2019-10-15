@@ -9,13 +9,21 @@ from PIL import Image, ImageOps
 import chainer
 
 class Video10000Dataset(chainer.dataset.DatasetMixin):
-    def __init__(self, data_dir, size=256):
-        self.path = glob('{}/*.jpg'.format(data_dir))
+    def __init__(self, path, data_dir, size=256):
+        self.base = self.data_loader(path, data_dir)
         self.img_res = (size, size)
         self.crop_ratio = 0.9
 
+    def data_loader(self, path, data_dir):
+        base = []
+        with open(path, 'r') as f:
+            for line in f:
+                img_path, label = line.strip('\n').split(' ')
+                base.append(['{}/{}'.format(data_dir, img_path), label])
+        return base
+
     def __len__(self):
-        return len(self.path)
+        return len(self.base)
     
     def transform(self, img_path):
         image = Image.open(img_path)
@@ -38,6 +46,6 @@ class Video10000Dataset(chainer.dataset.DatasetMixin):
         return image
 
     def get_example(self, i):
-        image = self.transform(self.path[i])
-        label = np.int32(0)
+        image = self.transform(self.base[i][0])
+        label = np.int32(self.base[i][1])
         return image, label

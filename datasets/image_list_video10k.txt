@@ -5945,7 +5945,6 @@ fade_into_you_4700.jpg 91
 fade_into_you_5750.jpg 91
 fade_into_you_6650.jpg 91
 fade_into_you_6550.jpg 91
-fade_into_you_6775 2.jpg 91
 fade_into_you_7000.jpg 91
 fade_into_you_6775.jpg 91
 fade_into_you_6700.jpg 91

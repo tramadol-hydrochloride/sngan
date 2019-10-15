@@ -28,6 +28,7 @@ dataset:
   dataset_fn: datasets/video10000.py
   dataset_name: Video10000Dataset
   args:
+    path: datasets/image_list_video10k.txt
     size: 128
 
 adam:

@@ -1,6 +1,6 @@
 batchsize: 8
 iteration: 250000
-iteration_decay_start: 0
+iteration_decay_start: 200000
 seed: 0
 display_interval: 100
 progressbar_interval: 100
@@ -15,7 +15,7 @@ models:
       dim_z: 128
       bottom_width: 4
       ch: 32
-      n_classes: 0
+      n_classes: 123
 
 
   discriminator:
@@ -23,7 +23,7 @@ models:
       name: SNResNetProjectionDiscriminator
       args:
         ch: 32
-        n_classes: 0
+        n_classes: 123
 
 dataset:
   dataset_fn: datasets/video10000.py
@@ -42,5 +42,5 @@ updater:
   args:
     n_dis: 5
     n_gen_samples: 16
-    conditional: False
+    conditional: True
     loss_type: hinge
