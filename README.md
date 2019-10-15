@@ -4,7 +4,9 @@ Modified [Preferred Networks' implementation of SNGAN with projection](https://g
 ## The notable changes are:
 * add ./configs/dataset-name.yml to set a configuration.
 
-* add ./datasets/dataset-name.py to load and preprocess an image dataset
+* add ./datasets/dataset-name.py to load and preprocess an image dataset.
+
+* add ./datasets/image_list.txt that contains image path and label pair.
 
 # Examples
 to be come
