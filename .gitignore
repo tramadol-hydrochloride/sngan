@@ -3,3 +3,5 @@
 /datasets/video10000_x128.zip
 /datasets/__pycache__
 __pycache__
+/datasets/video10000_temp.py
+/configs/video10000_x128_temp.yml

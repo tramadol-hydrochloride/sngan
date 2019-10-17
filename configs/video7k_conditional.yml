@@ -1,0 +1,46 @@
+batchsize: 8
+iteration: 250000
+iteration_decay_start: 200000
+seed: 0
+display_interval: 100
+progressbar_interval: 100
+snapshot_interval: 500
+evaluation_interval: 500
+
+models:
+  generator:
+    fn: gen_models/resnet_256.py
+    name: ResNetGenerator
+    args:
+      dim_z: 128
+      bottom_width: 4
+      ch: 32
+      n_classes: 123
+
+
+  discriminator:
+      fn: dis_models/snresnet_256.py
+      name: SNResNetProjectionDiscriminator
+      args:
+        ch: 32
+        n_classes: 123
+
+dataset:
+  dataset_fn: datasets/video10000.py
+  dataset_name: Video10000Dataset
+  args:
+    path: datasets/image_list_video7k.txt
+    size: 256
+adam:
+  alpha: 0.0002
+  beta1: 0.0
+  beta2: 0.9
+
+updater:
+  fn: updater.py
+  name: Updater
+  args:
+    n_dis: 5
+    n_gen_samples: 16
+    conditional: True
+    loss_type: hinge

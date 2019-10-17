@@ -1,0 +1,1 @@
+image_list_video7k.txt: dir/label pair whose dir has more than 50 images 
