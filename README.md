@@ -8,5 +8,7 @@ Modified [Preferred Networks' implementation of SNGAN with projection](https://g
 
 * add ./datasets/image_list.txt that contains image path and label pair.
 
+* modified evalution.py and evaluations/gen_images.py for custom evalutions (ie. save latent vectors z, generate an image from the given z, spherical interpolation, etc...)
+
 # Examples
 to be come
