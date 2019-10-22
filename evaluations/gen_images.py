@@ -7,7 +7,7 @@ from PIL import Image
 
 base = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(base, '../'))
-from evaluation import gen_images_with_condition
+from evaluation import gen_images_with_condition, gen_images_with_condition_save_z
 import yaml
 import source.yaml_utils as yaml_utils
 
@@ -27,6 +27,7 @@ def main():
     parser.add_argument('--rows', type=int, default=5)
     parser.add_argument('--columns', type=int, default=5)
     parser.add_argument('--classes', type=int, nargs="*", default=None)
+    parser.add_argument('--save_z', action='store_true') 
     args = parser.parse_args()
     chainer.cuda.get_device_from_id(args.gpu).use()
     config = yaml_utils.Config(yaml.load(open(args.config_path)))
@@ -39,17 +40,25 @@ def main():
     classes = tuple(args.classes) if args.classes is not None else np.arange(0, gen.n_classes, dtype=np.int32)
     for c in classes:
         with chainer.using_config('train', False), chainer.using_config('enable_backprop', False):
-            x = gen_images_with_condition(gen, c=c, n=args.rows * args.columns, batchsize=args.rows * args.columns)
+            if args.save_z:
+                x, z = gen_images_with_condition_save_z(gen, c=c, n=args.rows * args.columns, batchsize=args.rows * args.columns)
+            else:
+                x = gen_images_with_condition(gen, c=c, n=args.rows * args.columns, batchsize=args.rows * args.columns)
         _, _, h, w = x.shape
         x = x.reshape((args.rows, args.columns, 3, h, w))
         x = x.transpose(0, 3, 1, 4, 2)
         x = x.reshape((args.rows * h, args.columns * w, 3))
 
-        save_path = os.path.join(out, '{}.png'.format(str(c)))
+        # save image and z
         if not os.path.exists(out):
             os.makedirs(out)
+        n_iter = os.path.splitext(args.snapshot)[0].split('_')[-1]
+        n_file = len(os.listdir(args.results_dir))
+        save_path = os.path.join(out, 'cl_{}_iter_{}_{}.png'.format(str(c), str(n_iter), str(n_file).zfill(4)))
         Image.fromarray(x).save(save_path)
-
+        if args.save_z:
+            save_path_z = os.path.join(out, 'cl_{}_iter_{}_{}'.format(str(c), str(n_iter), str(n_file).zfill(4)))
+            np.save(save_path_z, z)
 
 if __name__ == '__main__':
     main()

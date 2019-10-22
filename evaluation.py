@@ -18,6 +18,7 @@ sys.path.append('../')
 from source.inception.inception_score import inception_score, Inception
 from source.links.sn_convolution_2d import SNConvolution2D
 from source.functions.max_sv import max_singular_value
+from source.miscs.random_samples import sample_categorical, sample_continuous
 from numpy.linalg import svd
 
 
@@ -51,6 +52,22 @@ def gen_images_with_condition(gen, c=0, n=500, batchsize=100):
     ims = ims.reshape((n, 3, h, w))
     return ims
 
+def gen_images_with_condition_save_z(gen, c=0, n=50000, batchsize=100):
+    ims = []
+    xp = gen.xp
+    z = sample_continuous(gen.dim_z, batchsize, distribution=gen.distribution, xp=gen.xp)
+    z_np = chainer.cuda.to_cpu(z)
+    for i in range(0, n, batchsize):
+        with chainer.using_config('train', False), chainer.using_config('enable_backprop', False):
+            y = xp.asarray([c] * batchsize, dtype=xp.int32)
+            x = gen(batchsize, z=z, y=y)
+        x = chainer.cuda.to_cpu(x.data)
+        x = np.asarray(np.clip(x * 127.5 + 127.5, 0.0, 255.0), dtype=np.uint8)
+        ims.append(x)
+    ims = np.asarray(ims)
+    _, _, _, h, w = ims.shape
+    ims = ims.reshape((n, 3, h, w))
+    return ims, z_np
 
 def sample_generate_light(gen, dst, rows=5, cols=5, seed=0):
     @chainer.training.make_extension()

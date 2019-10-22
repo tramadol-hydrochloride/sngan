@@ -5,3 +5,4 @@
 __pycache__
 /datasets/video10000_temp.py
 /configs/video10000_x128_temp.yml
+/configs/video7k_conditional_temp.yml
