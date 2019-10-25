@@ -34,7 +34,6 @@ def main():
     parser.add_argument('--n_zs', type=int, default=5)
     parser.add_argument('--classes', type=int, nargs="*", default=None)
     parser.add_argument('--seed', type=int, default=1234)
-    parser.add_argument('--iters', type=int, nargs="*", default=None)
     args = parser.parse_args()
     chainer.cuda.get_device(args.gpu).use()
     config = yaml_utils.Config(yaml.load(open(args.config_path)))
@@ -43,15 +42,11 @@ def main():
     out = args.results_dir
     chainer.serializers.load_npz(args.snapshot, gen)
     np.random.seed(args.seed)
-
     xp = gen.xp
     n_images = args.n_zs * args.n_intp
     imgs = []
     classes = tuple(args.classes) if args.classes is not None else [np.random.randint(1000), np.random.randint(1000)]
-    iters = tuple(args.iters)
-    snapshot_base = ''.join(args.snapshot.split('_')[:-1])
-    for i in range(iters[0], iters[1], iters[2]):
-        print('{}_{}.npz'.format(snapshot_base, str(i)))                                           
+                              
     for _ in range(args.n_zs):
         z = xp.array([np.random.normal(size=(128,))] * args.n_intp, xp.float32)
         ys = xp.array([[classes[0], classes[1]]] * args.n_intp, dtype=xp.int32)
