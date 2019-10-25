@@ -1,6 +1,6 @@
 """
 Example:
-python evaluations/gen_interpolated_images.py --n_zs=10 --n_intp=10 --snapshot=ResNetGenerator_850000.npz --config=configs/sn_projection.yml --classes 986 989
+python evaluations/gen_images_at_iters.py --n_zs=10 --snapshot=ResNetGenerator_850000.npz --classes 1 --iters 500 20500 2000
 """
 
 import os, sys, time
@@ -43,31 +43,27 @@ def main():
     out = args.results_dir
     chainer.serializers.load_npz(args.snapshot, gen)
     np.random.seed(args.seed)
-
     xp = gen.xp
     n_images = args.n_zs * args.n_intp
     imgs = []
     classes = tuple(args.classes) if args.classes is not None else [np.random.randint(1000), np.random.randint(1000)]
     iters = tuple(args.iters)
-    snapshot_base = ''.join(args.snapshot.split('_')[:-1])
+    snapshots = []
+    snapshot_base = '_'.join(args.snapshot.split('_')[:-1])
     for i in range(iters[0], iters[1], iters[2]):
-        print('{}_{}.npz'.format(snapshot_base, str(i)))                                           
-    for _ in range(args.n_zs):
-        z = xp.array([np.random.normal(size=(128,))] * args.n_intp, xp.float32)
-        ys = xp.array([[classes[0], classes[1]]] * args.n_intp, dtype=xp.int32)
-        ws_y = xp.array([np.linspace(0, 1, args.n_intp)[::-1], np.linspace(0, 1, args.n_intp)], dtype=xp.float32).T
-
+        snapshots.append('{}_{}.npz'.format(snapshot_base, str(i)))
+        
+    for snapshot in snapshots:
+        chainer.serializers.load_npz(snapshot, gen)
         with chainer.using_config('train', False), chainer.using_config('enable_backprop', False):
-            x = gen(z=z, y=ys, weights=ws_y)
-        x = chainer.cuda.to_cpu(x.data)
-        x = np.asarray(np.clip(x * 127.5 + 127.5, 0.0, 255.0), dtype=np.uint8)
+            x = gen_images_with_condition(gen, c=classes[0], n=args.n_zs, batchsize=args.n_zs)
         imgs.append(x)
     img = np.stack(imgs)
     _, _, _, h, w = img.shape
     img = img.transpose(0, 3, 1, 4, 2)
-    img = img.reshape((args.n_zs * h, args.n_intp * w, 3))
+    img = img.reshape((len(snapshots) * h, args.n_zs * w, 3))
 
-    save_path = os.path.join(out, 'interpolated_images_{}-{}.png'.format(classes[0], classes[1]))
+    save_path = os.path.join(out, 'snapshot_{}-{}-{}.png'.format(iters[0], iters[1], iters[2]))
     if not os.path.exists(out):
         os.makedirs(out)
     Image.fromarray(img).save(save_path)
