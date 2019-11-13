@@ -1,8 +1,3 @@
-"""
-Example:
-python evaluations/gen_interpolated_images.py --n_zs=10 --n_intp=10 --snapshot=ResNetGenerator_850000.npz --config=configs/sn_projection.yml --classes 986 989
-"""
-
 import os, sys, time
 import shutil
 import numpy as np
@@ -34,6 +29,7 @@ def main():
     parser.add_argument('--n_zs', type=int, default=5)
     parser.add_argument('--classes', type=int, nargs="*", default=None)
     parser.add_argument('--seed', type=int, default=1234)
+    parser.add_argument('--iters', type=int, nargs="*", default=None)
     args = parser.parse_args()
     chainer.cuda.get_device(args.gpu).use()
     config = yaml_utils.Config(yaml.load(open(args.config_path)))
@@ -44,30 +40,31 @@ def main():
     np.random.seed(args.seed)
     xp = gen.xp
     n_images = args.n_zs * args.n_intp
-    imgs = []
-    classes = tuple(args.classes) if args.classes is not None else [np.random.randint(1000), np.random.randint(1000)]
-                              
-    for _ in range(args.n_zs):
-        z = xp.array([np.random.normal(size=(128,))] * args.n_intp, xp.float32)
-        ys = xp.array([[classes[0], classes[1]]] * args.n_intp, dtype=xp.int32)
-        ws_y = xp.array([np.linspace(0, 1, args.n_intp)[::-1], np.linspace(0, 1, args.n_intp)], dtype=xp.float32).T
+    # imgs = []
+    # classes = tuple(args.classes) if args.classes is not None else [np.random.randint(1000), np.random.randint(1000)]
+    classes = np.arange(0, gen.n_classes, dtype=np.int32)
+    iters = tuple(args.iters)
+    snapshots = []
+    snapshot_base = '_'.join(args.snapshot.split('_')[:-1])
+    for i in range(iters[0], iters[1], iters[2]):
+        snapshots.append('{}_{}.npz'.format(snapshot_base, str(i)))
+        
+    for c in classes:
+        imgs = []
+        for snapshot in snapshots:
+            chainer.serializers.load_npz(snapshot, gen)
+            with chainer.using_config('train', False), chainer.using_config('enable_backprop', False):
+                x = gen_images_with_condition(gen, c=c, n=args.n_zs, batchsize=args.n_zs)
+            imgs.append(x)
+        img = np.stack(imgs)
+        _, _, _, h, w = img.shape
+        img = img.transpose(0, 3, 1, 4, 2)
+        img = img.reshape((len(snapshots) * h, args.n_zs * w, 3))
 
-        with chainer.using_config('train', False), chainer.using_config('enable_backprop', False):
-            x = gen(z=z, y=ys, weights=ws_y)
-        x = chainer.cuda.to_cpu(x.data)
-        x = np.asarray(np.clip(x * 127.5 + 127.5, 0.0, 255.0), dtype=np.uint8)
-        imgs.append(x)
-    img = np.stack(imgs)
-    _, _, _, h, w = img.shape
-    img = img.transpose(0, 3, 1, 4, 2)
-    img = img.reshape((args.n_zs * h, args.n_intp * w, 3))
-
-    n_iter = os.path.splitext(args.snapshot)[0].split('_')[-1]
-    n_file = len(os.listdir(args.results_dir))
-    save_path = os.path.join(out, 'interpolated_{}-{}_iters-{}_{}.png'.format(classes[0], classes[1], str(n_iter), str(n_file).zfill(4)))
-    if not os.path.exists(out):
-        os.makedirs(out)
-    Image.fromarray(img).save(save_path)
+        save_path = os.path.join(out, 'cl_{}_iters_{}_{}.png'.format(c, iters[0], iters[1]))
+        if not os.path.exists(out):
+            os.makedirs(out)
+        Image.fromarray(img).save(save_path)
 
 
 if __name__ == '__main__':
