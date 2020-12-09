@@ -40,7 +40,6 @@ def main():
     np.random.seed(args.seed)
     xp = gen.xp
     n_images = args.n_zs * args.n_intp
-    n_file = len(os.listdir(args.results_dir))
     imgs = []
     classes = tuple(args.classes) if args.classes is not None else [np.random.randint(1000), np.random.randint(1000)]
     iters = tuple(args.iters)
@@ -59,9 +58,11 @@ def main():
     img = img.transpose(0, 3, 1, 4, 2)
     img = img.reshape((len(snapshots) * h, args.n_zs * w, 3))
 
-    save_path = os.path.join(out, 'cl_{}_iters_{}_{}_{}.png'.format(classes[0], iters[0], iters[1], str(n_file).zfill(4)))
+    # save image to directory
     if not os.path.exists(out):
         os.makedirs(out)
+    n_file = len(os.listdir(args.results_dir))
+    save_path = os.path.join(out, 'cl_{}_iters_{}_{}_{}.png'.format(classes[0], iters[0], iters[1], str(n_file).zfill(4)))
     Image.fromarray(img).save(save_path)
 
 
